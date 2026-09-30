@@ -94,7 +94,87 @@ def _since(hours: int) -> datetime:
 
 
 def default_role(roles: list[str]) -> str:
-    return roles[0] if roles else "Software Engineer"
+    return nice_role(roles[0]) if roles else "Software Engineer"
+
+
+_ACRONYMS = {"ai", "ml", "sde", "qa", "ui", "ux", "api", "ios", "llm", "nlp", "genai"}
+
+
+def nice_role(role: str) -> str:
+    """'AI engineer' / 'backend engineer' -> 'AI Engineer' / 'Backend Engineer'."""
+    return " ".join(
+        w.upper() if w.lower() in _ACRONYMS else (w if w[:1].isupper() else w.capitalize())
+        for w in role.split()
+    )
+
+
+# what a company does -> which kind of role fits it (matched against your role names)
+_ROLE_KINDS: dict[str, tuple[re.Pattern[str], re.Pattern[str]]] = {
+    "ai": (
+        re.compile(r"\b(ai|ml|machine learning|gen ?ai|llm|agentic|data scien\w*)\b", re.I),
+        re.compile(
+            r"\b(ai|a\.i\.|artificial intelligence|machine learning|ml|llms?|gen ?ai|generative|"
+            r"nlp|computer vision|deep learning|neural|agents?|agentic|chatbots?|robotics?|"
+            r"autonomous|pytorch|tensorflow|openai|rag|copilot)\b",
+            re.I,
+        ),
+    ),
+    "data": (
+        re.compile(r"\bdata\b", re.I),
+        re.compile(
+            r"\b(data|analytics|etl|pipelines?|warehouse|spark|kafka|bigquery|snowflake|"
+            r"business intelligence|dashboards?)\b",
+            re.I,
+        ),
+    ),
+    "backend": (
+        re.compile(r"\b(back ?end|api|platform|cloud|devops|infra\w*)\b", re.I),
+        re.compile(
+            r"\b(apis?|back ?end|cloud|infrastructure|platform|microservices?|payments?|fintech|"
+            r"saas|b2b|databases?|postgres\w*|kubernetes|aws|gcp|golang|java|node\.?js|"
+            r"django|fastapi|integrations?|scal\w+)\b",
+            re.I,
+        ),
+    ),
+    "web": (
+        re.compile(r"\b(full ?stack|front ?end|web|react|mern)\b", re.I),
+        re.compile(
+            r"\b(web|websites?|web apps?|front ?end|react|next\.?js|angular|vue|ui|dashboards?|"
+            r"e-?commerce|marketplaces?|mobile apps?|consumer apps?|typescript)\b",
+            re.I,
+        ),
+    ),
+}
+
+
+_AI_FIRST = re.compile(
+    r"\bai[- ](powered|driven|native|first|based|platform|agents?|assistants?|company|startup)\b|"
+    r"\b(llms?|large language models?|generative ai|gen ?ai|agentic|machine learning|"
+    r"computer vision|robotics)\b",
+    re.I,
+)
+
+
+def pick_role(roles: list[str], r: CompanyResearch, skip_words: list[str]) -> str:
+    """The role to ask this company about: a matching opening on their site first, else
+    whichever of your roles best fits what they build, else your first role."""
+    for opening in r.open_roles:
+        if opening.title and matches_roles(opening.title, roles, skip_words):
+            return opening.title.strip()[:120]
+    ai_role = next((x for x in roles if _ROLE_KINDS["ai"][0].search(x)), None)
+    if ai_role and _AI_FIRST.search(r.what_they_do):
+        return nice_role(ai_role)  # the company describes itself as an AI company
+    text = " ".join([r.what_they_do, r.hook, *r.products, *r.tech])
+    best, best_score = "", 0
+    for role in roles:
+        score = sum(
+            len(set(m.lower() for m in company_words.findall(text)))
+            for kind_role, company_words in _ROLE_KINDS.values()
+            if kind_role.search(role)
+        )
+        if score > best_score:
+            best, best_score = role, score
+    return nice_role(best) if best else default_role(roles)
 
 
 def add_company(db: Session, website: str, *, name: str | None = None) -> OutreachCompany:
@@ -588,7 +668,7 @@ def queue_company(
         jd = company.jd_text
         note = f"Tailored to the job description you gave, for an email to {company.name}."
     else:
-        role = default_role(s.outreach_roles)
+        role = pick_role(s.outreach_roles, r, s.skip_title_words)
         jd = synthetic_jd(company.name, role, r)
         note = f"Tailored resume for a cold email to {company.name} ({company.website})."
     job = Job(
@@ -652,7 +732,12 @@ def draft_ready(db: Session, gateway: LLMGateway, email_id: int) -> None:
             profile=get_profile(db),
             company=company.name,
             website=company.website,
-            role=(job.role if job else None) or default_role(s.outreach_roles),
+            role=(job.role if job else None)
+            or pick_role(
+                s.outreach_roles,
+                CompanyResearch.model_validate(company.summary or {}),
+                s.skip_title_words,
+            ),
             r=CompanyResearch.model_validate(company.summary or {}),
             jd_text=company.jd_text,
             jd_structured=job.jd_structured if job else None,

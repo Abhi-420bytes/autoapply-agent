@@ -983,3 +983,38 @@ def test_closing_note_can_be_turned_off(client: Any, db: Session) -> None:
     r = client.patch(f"/api/outreach/emails/{e.id}", json={"body": "Just my own words."})
     body = r.json()["companies"][0]["email"]["body"]
     assert body == "Just my own words." and "AutoApply Agent" not in body
+
+
+def test_pick_role_fits_the_company() -> None:
+    from app.outreach.draft import CompanyResearch, OpenRole
+    from app.outreach.service import nice_role, pick_role
+
+    roles = ["software engineer", "backend engineer", "AI engineer", "full stack developer"]
+    skip = ["senior", "lead"]
+    ai = CompanyResearch(what_they_do="Builds LLM agents for customer support", tech=["PyTorch"])
+    assert pick_role(roles, ai, skip) == "AI Engineer"
+    api = CompanyResearch(
+        what_they_do="API management platform for enterprises", tech=["Kubernetes"]
+    )
+    assert pick_role(roles, api, skip) == "Backend Engineer"
+    web = CompanyResearch(
+        what_they_do="An e-commerce marketplace web app", tech=["React", "Next.js"]
+    )
+    assert pick_role(roles, web, skip) == "Full Stack Developer"
+    ai_first = CompanyResearch(
+        what_they_do="An AI-powered platform that turns ideas into full-stack web apps",
+        tech=["GitHub integration", "Self hosted database", "VPC setup"],
+    )
+    assert pick_role(roles, ai_first, skip) == "AI Engineer"
+    vague = CompanyResearch(what_they_do="We help people")
+    assert pick_role(roles, vague, skip) == "Software Engineer"
+    # a matching opening on their own site wins; a senior one doesn't
+    opening = CompanyResearch(
+        what_they_do="LLM agents",
+        open_roles=[
+            OpenRole(title="Senior Backend Engineer"),
+            OpenRole(title="Backend Engineer - Payments"),
+        ],
+    )
+    assert pick_role(roles, opening, skip) == "Backend Engineer - Payments"
+    assert nice_role("ml engineer") == "ML Engineer"
