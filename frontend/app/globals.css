@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Chart tokens (validated palette: slots 1-2, light + dark steps) */
+.viz-root {
+  --viz-surface: #fcfcfb;
+  --viz-text: #0b0b0b;
+  --viz-muted: #52514e;
+  --viz-grid: #e7e6e2;
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+}
+@media (prefers-color-scheme: dark) {
+  .viz-root {
+    --viz-surface: #1a1a19;
+    --viz-text: #ffffff;
+    --viz-muted: #c3c2b7;
+    --viz-grid: #2e2e2c;
+    --series-1: #3987e5;
+    --series-2: #d95926;
+  }
+}

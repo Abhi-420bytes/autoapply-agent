@@ -1,0 +1,29 @@
+% Pre-warms Tectonic's package cache at image build time with packages common in
+% student resume templates (Jake's resume, AltaCV-lite, etc.), so the first real
+% compile doesn't stall downloading them.
+\documentclass[letterpaper,11pt]{article}
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{xcolor}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\usepackage{multicol}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{fontawesome5}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{charter}
+\input{glyphtounicode}
+\pdfgentounicode=1
+\begin{document}
+Warmup \faGithub\ \Mundus\ $\alpha$ \textbf{bold} \textit{italic} \textsc{Small Caps}.
+\end{document}

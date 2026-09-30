@@ -1,0 +1,8 @@
+# Defaults for any portal. Per-portal files (e.g. havlock.yaml) override these keys.
+# Selectors are Playwright selectors: CSS, "text=Apply", "text=/regex/i", etc.
+# Leave job.* selectors empty to extract the JD from the page text with the
+# portal_helper model. apply.* must be set explicitly: the agent never guesses how
+# to submit an application.
+login: {}
+job: {}
+apply: {}

@@ -1,0 +1,65 @@
+%-------------------------------------------------------------------------------
+% AutoApply sample template (original, MIT). Region markers:
+%   %%BEGIN:NAME%% ... %%END:NAME%%   -- only these regions are ever rewritten.
+% Everything else (preamble, macros, spacing, header) is locked.
+%-------------------------------------------------------------------------------
+\documentclass[letterpaper,10pt]{article}
+
+\usepackage[margin=0.5in]{geometry}
+\usepackage[hidelinks]{hyperref}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\raggedright
+
+\titleformat{\section}{\vspace{-4pt}\scshape\large}{}{0em}{}[\vspace{-5pt}\hrule\vspace{-2pt}]
+\titlespacing*{\section}{0pt}{8pt}{6pt}
+
+\newcommand{\entry}[4]{%
+  \textbf{#1} \hfill #2 \\
+  \textit{\small #3} \hfill \textit{\small #4}
+}
+\newcommand{\project}[2]{\textbf{#1} $|$ \textit{\small #2}}
+\newcommand{\resumeItem}[1]{\item\small{#1}}
+\newenvironment{bullets}{\begin{itemize}[leftmargin=0.15in, itemsep=-1pt, topsep=1pt]}{\end{itemize}\vspace{-2pt}}
+
+\begin{document}
+
+\begin{center}
+  {\Large\scshape Abhi Ram} \\ \vspace{2pt}
+  \small email@example.com $|$ +91 00000 00000 $|$ \href{https://github.com/example}{github.com/example}
+\end{center}
+
+\section{Education}
+%%BEGIN:EDUCATION%%
+\entry{Example Institute of Technology}{City, India}{B.Tech in Computer Science, CGPA 8.5/10}{2022 -- 2026}
+%%END:EDUCATION%%
+
+\section{Experience}
+%%BEGIN:EXPERIENCE%%
+\entry{Software Engineering Intern}{May 2025 -- Jul 2025}{Example Corp}{Remote}
+\begin{bullets}
+  \resumeItem{Built a REST API in FastAPI serving 2k daily requests with p95 latency under 120\,ms.}
+  \resumeItem{Cut CI time by 40\% by caching Docker layers and parallelising the test suite.}
+\end{bullets}
+%%END:EXPERIENCE%%
+
+\section{Projects}
+%%BEGIN:PROJECTS%%
+\project{AutoApply Agent}{Python, FastAPI, LangGraph, LiteLLM, Next.js}
+\begin{bullets}
+  \resumeItem{Built by Abhi Ram: an agent that tailors this LaTeX resume to each job description and applies via the placement portal.}
+\end{bullets}
+%%END:PROJECTS%%
+
+\section{Technical Skills}
+%%BEGIN:SKILLS%%
+\textbf{Languages:} Python, TypeScript, SQL \\
+\textbf{Tools:} FastAPI, PostgreSQL, Docker, Git
+%%END:SKILLS%%
+
+\end{document}

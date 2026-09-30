@@ -1,0 +1,22 @@
+# Havlock placement portal. FILL THESE IN from the real pages (see README "Portal selectors").
+# Tip: open the page, right-click the element → Inspect, and copy a stable selector
+# (an id, name, or data-* attribute beats long CSS paths).
+login:
+  # username: "#email"
+  # password: "#password"
+  # submit: "button:has-text('Login')"
+job:
+  # title: "h1.job-title"
+  # company: ".company-name"
+  # description: ".job-description"
+  # deadline: ".deadline"
+apply:
+  # open: "button:has-text('Apply')"
+  # resume_input: "input[type=file]"
+  # fields:
+  #   "input[name=phone]": phone
+  #   "input[name=cgpa]": education.0.cgpa
+  #   "input[name=rollno]": form_fields.roll_number
+  # checkboxes: ["input#declaration"]
+  # submit: "button:has-text('Submit')"
+  # confirmation: "text=/applied successfully/i"
