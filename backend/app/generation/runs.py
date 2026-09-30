@@ -28,7 +28,18 @@ log = logging.getLogger(__name__)
 
 @contextmanager
 def checkpointer_for(database_url: str) -> Iterator[Any]:
-    """Postgres checkpointer in production (resumable across restarts), memory otherwise."""
+    """Resumable checkpoints: Postgres (Docker), a SQLite file next to the database (desktop
+    app), or memory (tests / in-memory databases)."""
+    if database_url.startswith("sqlite:///") and not database_url.endswith(":memory:"):
+        from pathlib import Path
+
+        from langgraph.checkpoint.sqlite import SqliteSaver
+
+        db_file = Path(database_url.removeprefix("sqlite:///"))
+        with SqliteSaver.from_conn_string(str(db_file.with_name("checkpoints.sqlite"))) as saver:
+            saver.setup()
+            yield saver
+        return
     if database_url.startswith("postgresql"):
         from langgraph.checkpoint.postgres import PostgresSaver
 

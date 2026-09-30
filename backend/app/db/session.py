@@ -18,6 +18,11 @@ def get_engine() -> Engine:
         @event.listens_for(engine, "connect")
         def _fk_on(dbapi_conn, _):  # type: ignore[no-untyped-def]
             dbapi_conn.execute("PRAGMA foreign_keys=ON")
+            if url != "sqlite://" and ":memory:" not in url:
+                # desktop app: the API and the background agent write concurrently
+                dbapi_conn.execute("PRAGMA journal_mode=WAL")
+                dbapi_conn.execute("PRAGMA busy_timeout=15000")
+                dbapi_conn.execute("PRAGMA synchronous=NORMAL")
 
         return engine
     return create_engine(url, pool_pre_ping=True)

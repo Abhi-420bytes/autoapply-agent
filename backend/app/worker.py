@@ -19,6 +19,7 @@ import logging
 import signal
 from datetime import UTC, datetime
 from types import FrameType
+from typing import Any
 
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.schedulers.blocking import BlockingScheduler
@@ -198,8 +199,8 @@ def weekly_github_sync() -> None:
             request_github_sync(db, reason="weekly")
 
 
-def build_scheduler() -> BlockingScheduler:
-    scheduler = BlockingScheduler(
+def build_scheduler(cls: type[Any] = BlockingScheduler) -> Any:
+    scheduler = cls(
         jobstores={"default": SQLAlchemyJobStore(engine=get_engine(), tablename="scheduler_jobs")},
         job_defaults={"coalesce": True, "misfire_grace_time": 3600, "max_instances": 1},
         timezone="UTC",
@@ -252,6 +253,22 @@ def main() -> None:
         scheduler.start()
     finally:
         stack.close()
+
+
+def start_background() -> Any:
+    """Desktop app: run the same jobs on a background thread inside the app process."""
+    from apscheduler.schedulers.background import BackgroundScheduler
+
+    global _checkpointer
+    stack = contextlib.ExitStack()
+    _checkpointer = stack.enter_context(checkpointer_for(get_config().database_url))
+    with get_sessionmaker()() as db:
+        if n := recover_interrupted(db):
+            log.info("re-queued %d interrupted generation run(s)", n)
+    scheduler = build_scheduler(BackgroundScheduler)
+    scheduler.start()
+    log.info("background worker started")
+    return scheduler
 
 
 if __name__ == "__main__":
