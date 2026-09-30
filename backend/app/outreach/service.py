@@ -148,7 +148,7 @@ _ROLE_KINDS: dict[str, tuple[re.Pattern[str], re.Pattern[str]]] = {
 
 
 _AI_FIRST = re.compile(
-    r"\bai[- ](powered|driven|native|first|based|platform|agents?|assistants?|company|startup)\b|"
+    r"\bai[-\u2010\u2011\u2013 ](powered|driven|native|first|based|platform|agents?|assistants?|company|startup)\b|"
     r"\b(llms?|large language models?|generative ai|gen ?ai|agentic|machine learning|"
     r"computer vision|robotics)\b",
     re.I,

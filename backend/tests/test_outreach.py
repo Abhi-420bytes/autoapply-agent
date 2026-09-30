@@ -1006,6 +1006,8 @@ def test_pick_role_fits_the_company() -> None:
         tech=["GitHub integration", "Self hosted database", "VPC setup"],
     )
     assert pick_role(roles, ai_first, skip) == "AI Engineer"
+    oolka = CompanyResearch(what_they_do="An AI\u2011driven platform for credit scores", tech=["payments"])
+    assert pick_role(roles, oolka, skip) == "AI Engineer"  # non-breaking hyphen
     vague = CompanyResearch(what_they_do="We help people")
     assert pick_role(roles, vague, skip) == "Software Engineer"
     # a matching opening on their own site wins; a senior one doesn't
