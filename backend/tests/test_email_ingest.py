@@ -52,7 +52,7 @@ def classify_json(**kw: Any) -> str:
             "kind": "job_notice",
             "company": "Acme Corp",
             "role": "SDE Intern",
-            "deadline": "2026-09-30T23:59",
+            "deadline": (datetime.now(UTC) + timedelta(days=30)).strftime("%Y-%m-%dT23:59"),
             "apply_link": 1,
         }
         | kw

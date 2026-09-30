@@ -210,6 +210,24 @@ def test_guard_regions_removes_invented_claims() -> None:
     assert any("number 99" in r for r in out.removed)
 
 
+def test_fixed_sections_are_always_kept_from_the_base_resume() -> None:
+    pack = FactPack(facts=[Fact("b1", "Built an API", "x")], author="A", tagger=SkillTagger())
+    certs = "\\begin{itemize}\n    \\resumeItem{AWS Academy Graduate}\n\\end{itemize}"
+    activities = "\\begin{itemize}\n    \\resumeItem{Self-taught guitarist}\n\\end{itemize}"
+    base = {"PROJECTS": "old", "CERTIFICATIONS": certs, "EXTRACURRICULAR_ACTIVITIES": activities}
+    # the writer emptied (or rewrote) them: they come back exactly as in your resume, pinned
+    out = guard_regions(
+        {"PROJECTS": "new", "CERTIFICATIONS": "", "EXTRACURRICULAR_ACTIVITIES": "\\item Chess"},
+        base,
+        pack,
+        "item",
+    )
+    assert "AWS Academy Graduate}  %%pin" in out.regions["CERTIFICATIONS"]
+    assert "guitarist}  %%pin" in out.regions["EXTRACURRICULAR_ACTIVITIES"]
+    assert "Chess" not in out.regions["EXTRACURRICULAR_ACTIVITIES"]
+    assert out.regions["PROJECTS"] == "new"  # tailored sections are still the writer's
+
+
 def test_ats_scoring_and_verified_synonyms(
     gateway: LLMGateway, backend: FakeBackend, db: Session
 ) -> None:

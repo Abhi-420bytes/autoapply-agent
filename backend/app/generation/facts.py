@@ -162,6 +162,23 @@ class GuardResult:
     signature_present: bool
 
 
+# Sections copied from your base resume unchanged on every resume (and never trimmed to fit
+# the page): certifications, activities, awards... Only skills/experience/projects are tailored.
+FIXED_REGION = re.compile(
+    r"CERTIF|EXTRA|ACTIVIT|ACHIEVE|AWARD|HONOU?R|LANGUAGES|INTEREST|HOBB|VOLUNT|LEADERSHIP|"
+    r"POSITION|PUBLICATION|COURSE",
+    re.I,
+)
+
+
+def pin_bullets(content: str, bullet_command: str) -> str:
+    bullet = re.compile(rf"\\({re.escape(bullet_command)}|\w*item)\b", re.I)
+    return "\n".join(
+        f"{line}  %%pin" if bullet.search(line) and "%%pin" not in line else line
+        for line in content.splitlines()
+    )
+
+
 def guard_regions(
     regions: dict[str, str],
     base_regions: dict[str, str],
@@ -211,6 +228,9 @@ def guard_regions(
                 out[name] = cleaned
                 removed.append(f"{name}: removed the {SIGNATURE_NAME} entry (not your project)")
     out = {name: drop_empty_lists(content, bullet_command) for name, content in out.items()}
+    for name, content in base_regions.items():
+        if FIXED_REGION.search(name):
+            out[name] = pin_bullets(content, bullet_command)
     signature = any(SIGNATURE_NAME.lower() in to_text(c).lower() for c in out.values())
     return GuardResult(regions=out, removed=removed, signature_present=signature)
 
