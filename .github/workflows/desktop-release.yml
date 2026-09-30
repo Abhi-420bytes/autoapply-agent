@@ -1,0 +1,90 @@
+# Builds the AutoApply desktop apps (no Docker needed to run them) and attaches them to
+# a GitHub release. Push a tag like v1.0.0, or run it by hand from the Actions tab.
+# Created by Abhiram (Challa Abhiram). MIT license.
+name: Desktop apps
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  TECTONIC_VERSION: "0.17.0"
+
+jobs:
+  macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-14  # Apple Silicon
+            tectonic: aarch64-apple-darwin
+          - runner: macos-13  # Intel
+            tectonic: x86_64-apple-darwin
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: astral-sh/setup-uv@v3
+      - name: Install the backend and PyInstaller
+        run: uv pip install --system ./backend pyinstaller
+      - name: Download Tectonic
+        run: |
+          curl -fsSL -o tectonic.tgz "https://github.com/tectonic-typesetting/tectonic/releases/download/tectonic%40${TECTONIC_VERSION}/tectonic-${TECTONIC_VERSION}-${{ matrix.tectonic }}.tar.gz"
+          tar -xzf tectonic.tgz
+          echo "TECTONIC_BIN=$PWD/tectonic" >> "$GITHUB_ENV"
+      - name: Build AutoApply.app and .dmg
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"; [[ "$GITHUB_REF" == refs/tags/* ]] || VERSION="0.0.0-dev"
+          PYTHON=python packaging/build_macos.sh "$VERSION"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AutoApply-macos-${{ matrix.tectonic }}
+          path: packaging/dist/*.dmg
+      - name: Attach to the release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: packaging/dist/*.dmg
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: astral-sh/setup-uv@v3
+      - name: Install the backend and PyInstaller
+        run: uv pip install --system ./backend pyinstaller
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+      - name: Build AutoApply for Windows
+        shell: pwsh
+        run: |
+          $version = if ($env:GITHUB_REF -like "refs/tags/*") { $env:GITHUB_REF_NAME.TrimStart("v") } else { "0.0.0-dev" }
+          packaging\build_windows.ps1 -Version $version -Python python
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AutoApply-windows-x64
+          path: |
+            packaging/dist/*.exe
+            packaging/dist/*.zip
+      - name: Attach to the release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            packaging/dist/AutoApply-Setup-*.exe
+            packaging/dist/*.zip

@@ -22,6 +22,29 @@ emails to startups and mid-size companies.
   (Fernet), and any LLM provider works through one gateway (Gemini, OpenAI, Anthropic,
   Ollama…).
 
+## Download (no Docker needed)
+
+Get the app from the **[Releases page](https://github.com/Abhi-420bytes/autoapply-agent/releases/latest)**:
+
+| System | File | First launch |
+|---|---|---|
+| **macOS** (Apple Silicon or Intel) | `AutoApply-<version>-macos-arm64.dmg` / `-x86_64.dmg` | Drag AutoApply to Applications. The app isn't Apple-notarized, so the first time **right-click → Open → Open**. |
+| **Windows 10/11** | `AutoApply-Setup-<version>.exe` | If SmartScreen appears: **More info → Run anyway**. Tick "Start AutoApply when I sign in" to keep the agent working. |
+
+Open AutoApply and the dashboard opens in its own window. Everything runs on your own
+computer, and your data stays in your user folder. On first launch the app:
+
+1. creates its own encryption key,
+2. downloads the browser used by the portal agent (about 150 MB, once),
+3. downloads LaTeX packages the first time it builds a resume.
+
+Then add an AI key in **Settings → AI models** (a free Gemini key works), upload your LaTeX
+resume in **Resume template**, and connect your email in **Settings → Email accounts**.
+For Gmail, the simplest option is IMAP with an app password.
+
+Developers can still run the Docker setup described below, or run
+`python -m app.desktop` from `backend/`.
+
 > **Credit:** AutoApply Agent is free to use, modify and share under the MIT license, which
 > requires every copy to keep the copyright notice and credit to its creator, Abhiram.
 

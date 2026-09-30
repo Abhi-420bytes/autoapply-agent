@@ -15,3 +15,6 @@ backend/data/
 *.log
 .env.*
 !.env.example
+packaging/stage/
+packaging/build/
+packaging/dist/
