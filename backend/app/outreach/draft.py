@@ -196,15 +196,23 @@ def draft_email(
     job_id: int | None = None,
     closing_note: str = DEFAULT_CLOSING_NOTE,
     sender_name: str | None = None,
+    jd_text: str | None = None,
+    jd_structured: dict[str, Any] | None = None,
 ) -> Draft:
-    analysis = JDAnalysis(
-        role=role,
-        company=company,
-        required_skills=r.tech[:12],
-        keywords=r.products[:8],
-        responsibilities=[r.what_they_do] if r.what_they_do else [],
-    )
-    jd = synthetic_jd(company, role, r)
+    if jd_text and jd_structured:  # a real job you gave: its analysed requirements
+        analysis = JDAnalysis.model_validate(
+            {k: v for k, v in jd_structured.items() if k in JDAnalysis.model_fields}
+        )
+        jd = jd_text
+    else:
+        analysis = JDAnalysis(
+            role=role,
+            company=company,
+            required_skills=r.tech[:12],
+            keywords=r.products[:8],
+            responsibilities=[r.what_they_do] if r.what_they_do else [],
+        )
+        jd = jd_text or synthetic_jd(company, role, r)
     pack: FactPack = build_facts(db, gateway, analysis, jd, base_regions, k=25)
     prof = profile.model_dump(mode="json", exclude={"form_fields"})
     out = gateway.structured(
@@ -218,6 +226,10 @@ def draft_email(
             "profile": json.dumps(prof, indent=1)[:3000],
             "research": r.model_dump_json(indent=1)[:4000],
             "facts": pack.as_prompt_lines(),
+            "job_posting": (jd_text or "")[:6000],
+            "requirements": ", ".join(
+                [*analysis.required_skills[:10], *analysis.preferred_skills[:6]]
+            ),
         },
         ColdEmailOut,
         job_id=job_id,

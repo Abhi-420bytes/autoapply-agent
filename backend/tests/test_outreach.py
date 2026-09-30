@@ -885,3 +885,88 @@ def _setup_company2(db: Session) -> OutreachCompany:
     db.add(c)
     db.commit()
     return c
+
+
+JD_BACKEND = (
+    "Backend Engineer Intern at Acme. Required: Python, FastAPI, PostgreSQL. "
+    "You will build REST APIs for payments."
+)
+
+
+def test_email_plus_job_description_tailors_resume_and_email(
+    client: Any, gen_env: dict[str, Any], backend: FakeBackend, db: Session
+) -> None:
+    r = client.post(
+        "/api/outreach/companies",
+        json={
+            "email": "hr.recruiter@gmail.com",
+            "name": "Acme",
+            "jd_text": JD_BACKEND,
+            "role": "Backend Engineer Intern",
+        },
+    )
+    assert r.status_code == 201
+    c_out = next(x for x in r.json()["companies"] if x["domain"] == "hr.recruiter@gmail.com")
+    assert c_out["has_jd"] and c_out["role"] == "Backend Engineer Intern"
+
+    c = db.get(OutreachCompany, c_out["id"])
+    assert c is not None
+    email = service.queue_company(db, c, lambda *a, **k: None)
+    job = db.get(Job, email.job_id)
+    assert job is not None and job.jd_text == JD_BACKEND and job.role == "Backend Engineer Intern"
+
+    job.jd_structured = {
+        "role": "Backend Engineer Intern",
+        "company": "Acme",
+        "required_skills": ["Python", "FastAPI", "PostgreSQL"],
+        "eligibility": {},
+    }
+    db.add(
+        Resume(
+            kind=ResumeKind.GENERATED, version=1, job_id=job.id, tex_source="x", pdf_path="r.pdf"
+        )
+    )
+    db.commit()
+    backend.script("writer", _draft_json("I built a REST API in FastAPI and PostgreSQL."))
+    service.draft_ready(db, gen_env["deps"].gateway, email.id)
+    prompt = [c[1][-1]["content"] for c in backend.calls if c[0].model == "writer"][-1]
+    assert "JOB POSTING" in prompt and "build REST APIs for payments" in prompt
+    assert "REQUIREMENTS: Python, FastAPI, PostgreSQL" in prompt
+    db.expire_all()
+    assert db.get(OutreachEmail, email.id).status == "ready"  # type: ignore[union-attr]
+
+
+def test_ai_rate_limit_during_research_retries_later_instead_of_failing(
+    gen_env: dict[str, Any], backend: FakeBackend, db: Session
+) -> None:
+    from app.llm.errors import ErrorKind, LLMProviderError
+
+    site = {
+        "https://acme.io/robots.txt": (404, ""),
+        "https://acme.io/": (200, "<p>Payments. careers@acme.io</p>"),
+    }
+    c = OutreachCompany(name="Acme", domain="acme.io", website="https://acme.io/", status="new")
+    db.add(c)
+    db.commit()
+    backend.script("jd", *[LLMProviderError(ErrorKind.RATE_LIMIT, "429 quota")] * 2)
+    service.research_company(
+        db, gen_env["deps"].gateway, c.id, SiteReader(_site(site), pause_s=0), None
+    )
+    db.expire_all()
+    got = db.get(OutreachCompany, c.id)
+    assert got is not None and got.status == "new" and (got.error or "").startswith("Will retry")
+
+    picked: list[int] = []
+    orig = service.research_company
+    service.research_company = lambda db_, gw, cid, *a: picked.append(cid)  # type: ignore[assignment]
+    try:
+        service.process_outreach(
+            gen_env["deps"].gateway,
+            gen_env["maker"],
+            lambda *a, **k: None,
+            reader=SiteReader(_site({}), pause_s=0),
+            search=FakeSearch([]),
+        )
+    finally:
+        service.research_company = orig  # type: ignore[assignment]
+    assert picked == []  # waits 30 minutes before trying again

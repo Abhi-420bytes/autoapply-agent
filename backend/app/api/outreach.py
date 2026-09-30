@@ -24,6 +24,7 @@ from app.outreach.service import (
     run_discovery,
     send_approved,
     sent_last_day,
+    set_job_description,
     set_user_email,
 )
 from app.search.web import SearchError, make_searcher
@@ -58,6 +59,8 @@ class CompanyOut(BaseModel):
     location: str | None
     size: str | None
     careers_url: str | None
+    role: str | None
+    has_jd: bool
     source: str
     status: str
     summary: dict[str, Any] | None
@@ -114,6 +117,8 @@ def overview(db: Session = Depends(get_db)) -> Overview:
             location=c.location,
             size=c.size,
             careers_url=c.careers_url,
+            role=c.role,
+            has_jd=bool(c.jd_text),
             source=c.source,
             status=c.status,
             summary=c.summary,
@@ -137,6 +142,9 @@ class CompanyIn(BaseModel):
     website: str | None = Field(default=None, max_length=500)
     name: str | None = Field(default=None, max_length=200)
     email: EmailStr | None = None  # optional with a website: the agent finds one itself
+    # optional: a specific job to email about (resume + email tailored to it)
+    jd_text: str | None = Field(default=None, max_length=30000)
+    role: str | None = Field(default=None, max_length=200)
 
 
 class CompanyEmailIn(BaseModel):
@@ -154,7 +162,9 @@ def create_company(body: CompanyIn, db: Session = Depends(get_db)) -> Overview:
             if body.email:
                 set_user_email(db, c, str(body.email))
         else:
-            add_by_email(db, str(body.email), name=body.name)
+            c = add_by_email(db, str(body.email), name=body.name)
+        if body.jd_text and body.jd_text.strip():
+            set_job_description(db, c, body.jd_text, body.role)
     except ValueError as exc:
         raise HTTPException(422, str(exc)) from None
     db.commit()

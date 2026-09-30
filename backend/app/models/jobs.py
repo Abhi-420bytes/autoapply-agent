@@ -97,6 +97,9 @@ class OutreachCompany(TimestampMixin, Base):
     careers_url: Mapped[str | None] = mapped_column(String(1000))
     watch_checked_at: Mapped[datetime | None] = mapped_column(default=None)
     seen_openings: Mapped[list[str]] = mapped_column(JSON, default=list)
+    # a specific job you're emailing about (optional): resume + email are tailored to it
+    jd_text: Mapped[str | None] = mapped_column(Text)
+    role: Mapped[str | None] = mapped_column(String(200))
 
 
 class OutreachSource(TimestampMixin, Base):

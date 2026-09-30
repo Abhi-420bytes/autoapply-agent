@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { Avatar, Badge, Button, Card, EmptyState, Input, Label, Notice, PageHeader, SectionTitle, Select, StatCard, Switch, Tabs } from "@/components/ui";
+import { Avatar, Badge, Button, Card, EmptyState, Input, Label, Notice, PageHeader, SectionTitle, Select, StatCard, Switch, Tabs, Textarea } from "@/components/ui";
 import { IconBuilding, IconEye, IconMail, IconSearch, IconSend } from "@/components/icons";
 import { call } from "@/lib/client";
 
@@ -30,6 +30,8 @@ type Company = {
   location: string | null;
   size: string | null;
   careers_url: string | null;
+  role: string | null;
+  has_jd: boolean;
   source: string;
   status: string;
   summary: { what_they_do?: string; tech?: string[]; hook?: string } | null;
@@ -80,6 +82,8 @@ export default function OutreachPage() {
   const [site, setSite] = useState("");
   const [siteEmail, setSiteEmail] = useState("");
   const [siteName, setSiteName] = useState("");
+  const [siteRole, setSiteRole] = useState("");
+  const [siteJd, setSiteJd] = useState("");
   const [busy, setBusy] = useState(false);
   const [tab, setTab] = useState<"drafts" | "companies" | "directories" | "setup">("drafts");
 
@@ -247,16 +251,33 @@ export default function OutreachPage() {
           The agent finds the email itself: a hiring address on their site or the web, else their Contact Us address, else it watches their careers
           page and applies when a matching job is posted. You can also give <b>just an email address</b>: the agent tailors the resume, writes the email and
           sends it straight away (a work address like name@company.com also lets it read the company&apos;s website; for a Gmail/personal address,
-          add the company name).
+          add the company name). Have a specific job? Paste its <b>job description</b> too, and the resume and email are tailored to that exact role.
         </p>
         <div className="flex flex-wrap gap-2">
           <Input className="w-64" type="email" placeholder="email address" value={siteEmail} onChange={(e) => setSiteEmail(e.target.value)} />
           <Input className="min-w-48 flex-1" placeholder="website (optional)" value={site} onChange={(e) => setSite(e.target.value)} />
           <Input className="w-48" placeholder="company name (optional)" value={siteName} onChange={(e) => setSiteName(e.target.value)} />
-          <Button size="sm" className="h-9" disabled={(!site && !siteEmail) || busy} onClick={() => act(async () => {
-            const r = await call<Overview>("/outreach/companies", { method: "POST", json: { website: site || null, email: siteEmail || null, name: siteName || null } });
-            setSite(""); setSiteEmail(""); setSiteName(""); return r;
-          }, siteEmail ? "Added. The agent prepares and sends it within a few minutes." : "Added. It's researched within a few minutes.")}>Add</Button>
+        </div>
+        <div className="grid gap-2 sm:grid-cols-[220px_1fr]">
+          <Input placeholder="role (optional), e.g. Backend Engineer" value={siteRole} onChange={(e) => setSiteRole(e.target.value)} aria-label="Role" />
+          <Textarea
+            className="min-h-20 text-sm"
+            placeholder="Job description (optional): paste it and the resume + email are tailored to this exact job"
+            value={siteJd}
+            onChange={(e) => setSiteJd(e.target.value)}
+            aria-label="Job description"
+          />
+        </div>
+        <div className="flex justify-end">
+          <Button disabled={(!site && !siteEmail) || busy} onClick={() => act(async () => {
+            const r = await call<Overview>("/outreach/companies", {
+              method: "POST",
+              json: { website: site || null, email: siteEmail || null, name: siteName || null, role: siteRole || null, jd_text: siteJd || null },
+            });
+            setSite(""); setSiteEmail(""); setSiteName(""); setSiteRole(""); setSiteJd(""); return r;
+          }, siteJd ? "Added. The resume and email are being tailored to this job description." : siteEmail ? "Added. The agent prepares and sends it within a few minutes." : "Added. It's researched within a few minutes.")}>
+            Add
+          </Button>
         </div>
       </Card>
 
@@ -270,7 +291,7 @@ export default function OutreachPage() {
                 const st = STATUS[c.email?.status ?? c.status] ?? { label: c.status, tone: "neutral" as const };
                 return (
                   <tr key={c.id} className="border-t border-zinc-100 align-top transition-colors hover:bg-zinc-50/70 dark:border-zinc-800 dark:hover:bg-zinc-800/30">
-                    <td className="px-4 py-3"><div className="flex items-start gap-3"><Avatar name={c.name} size={32} /><div className="min-w-0">{c.website ? <a className="font-medium hover:text-brand-700" href={c.website} target="_blank" rel="noreferrer noopener">{c.name}</a> : <span className="font-medium">{c.name}</span>}<div className="text-xs text-zinc-500">{c.website ? c.domain : "personal email"}{c.size ? ` · ${c.size}` : ""}{c.source === "manual" ? " · added by you" : ""}</div></div></div></td>
+                    <td className="px-4 py-3"><div className="flex items-start gap-3"><Avatar name={c.name} size={32} /><div className="min-w-0">{c.website ? <a className="font-medium hover:text-brand-700" href={c.website} target="_blank" rel="noreferrer noopener">{c.name}</a> : <span className="font-medium">{c.name}</span>}<div className="text-xs text-zinc-500">{c.website ? c.domain : "personal email"}{c.size ? ` · ${c.size}` : ""}{c.source === "manual" ? " · added by you" : ""}</div>{c.has_jd && <Badge tone="accent" className="mt-1">for: {c.role ?? "the job you gave"}</Badge>}</div></div></td>
                     <td className="max-w-xs px-4 py-3 text-xs text-zinc-600 dark:text-zinc-400"><span className="line-clamp-3">{c.summary?.what_they_do ?? "–"}</span></td>
                     <td className="px-4 py-3 text-xs">{c.status === "watching" && c.careers_url && !c.emails[0] ? (
                       <a className="underline" href={c.careers_url} target="_blank" rel="noreferrer noopener">careers page</a>

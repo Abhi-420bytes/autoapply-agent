@@ -80,8 +80,13 @@ log = logging.getLogger(__name__)
 
 LAST_SEARCH_KEY = "outreach.last_search"
 RETRY_SEND_HOURS = 24  # temporary send failures are retried this long
+RESEARCH_RETRY_MINUTES = 30  # wait after an AI rate limit before researching again
 RESEARCH_PER_TICK = 2
 QUEUE_PER_TICK = 1
+
+
+def _since_minutes(minutes: int) -> datetime:
+    return datetime.now(UTC) - timedelta(minutes=minutes)
 
 
 def _since(hours: int) -> datetime:
@@ -165,6 +170,20 @@ def add_by_email(db: Session, address: str, name: str | None = None) -> Outreach
             db.flush()
     set_user_email(db, c, addr)
     return c
+
+
+def set_job_description(
+    db: Session, company: OutreachCompany, jd_text: str, role: str | None = None
+) -> None:
+    """A specific job you're emailing about: the resume and the email are tailored to it."""
+    company.jd_text = jd_text.strip()[:30000]
+    company.role = (role or "").strip()[:200] or None
+    email = db.scalar(select(OutreachEmail).where(OutreachEmail.company_id == company.id))
+    if email is not None and email.status in ("ready", "failed", "resume_pending", "skipped"):
+        # redo the tailored resume and draft for this JD
+        db.delete(email)
+        if company.status in ("queued", "skipped"):
+            company.status = "researched" if company.summary else "new"
 
 
 def set_user_email(db: Session, company: OutreachCompany, address: str) -> None:
@@ -320,6 +339,14 @@ def research_company(
         try:
             r = research(gateway, domain, site.pages)
         except LLMError as exc:
+            if getattr(exc, "transient", False):
+                # AI rate limit / outage: not a real failure; research again later
+                c = db.get(OutreachCompany, company_id)
+                assert c is not None
+                c.status, c.researched_at = "new", datetime.now(UTC)
+                c.error = f"Will retry in {RESEARCH_RETRY_MINUTES} min (AI busy or rate-limited)"
+                db.commit()
+                return
             error = f"research failed: {str(exc)[:200]}"
     site_emails = [e.__dict__ | {"source": "site"} for e in site.emails]
     is_company = r is not None and r.is_company_site and not looks_like_job_board(r)
@@ -555,15 +582,22 @@ def queue_company(
     db: Session, company: OutreachCompany, queue_generation: Callable[..., object]
 ) -> OutreachEmail:
     s = get_app_settings(db)
-    role = default_role(s.outreach_roles)
     r = CompanyResearch.model_validate(company.summary or {})
+    if company.jd_text:  # you gave the job description: tailor to it (role read from it)
+        role: str | None = company.role
+        jd = company.jd_text
+        note = f"Tailored to the job description you gave, for an email to {company.name}."
+    else:
+        role = default_role(s.outreach_roles)
+        jd = synthetic_jd(company.name, role, r)
+        note = f"Tailored resume for a cold email to {company.name} ({company.website})."
     job = Job(
         source=JobSource.MANUAL,
         status=JobStatus.DETECTED,
         company=company.name,
         role=role,
-        jd_text=synthetic_jd(company.name, role, r),
-        notes=f"Tailored resume for a cold email to {company.name} ({company.website}).",
+        jd_text=jd,
+        notes=note,
         detected_at=datetime.now(UTC),
     )
     db.add(job)
@@ -610,6 +644,7 @@ def draft_ready(db: Session, gateway: LLMGateway, email_id: int) -> None:
     template = active_template(db)
     base = _base_regions(template.tex_source) if template else {}
     s = get_app_settings(db)
+    job = db.get(Job, e.job_id)
     try:
         d = draft_email(
             db,
@@ -617,8 +652,10 @@ def draft_ready(db: Session, gateway: LLMGateway, email_id: int) -> None:
             profile=get_profile(db),
             company=company.name,
             website=company.website,
-            role=default_role(s.outreach_roles),
+            role=(job.role if job else None) or default_role(s.outreach_roles),
             r=CompanyResearch.model_validate(company.summary or {}),
+            jd_text=company.jd_text,
+            jd_structured=job.jd_structured if job else None,
             base_regions=base,
             job_id=e.job_id,
             closing_note=s.outreach_closing_note,
@@ -829,7 +866,11 @@ def process_outreach(
             new_ids = list(
                 db.scalars(
                     select(OutreachCompany.id)
-                    .where(OutreachCompany.status == "new")
+                    .where(
+                        OutreachCompany.status == "new",
+                        (OutreachCompany.researched_at.is_(None))
+                        | (OutreachCompany.researched_at <= _since_minutes(RESEARCH_RETRY_MINUTES)),
+                    )
                     .order_by(OutreachCompany.id)
                     .limit(RESEARCH_PER_TICK)
                 )
