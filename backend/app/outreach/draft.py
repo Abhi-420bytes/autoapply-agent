@@ -241,7 +241,7 @@ def draft_email(
             out.greeting,
             out.body,
             signature(profile, name),
-            "—\n" + disclosure(name, closing_note),
+            ("—\n" + disclosure(name, closing_note)) if closing_note.strip() else "",
         )
         if x.strip()
     )

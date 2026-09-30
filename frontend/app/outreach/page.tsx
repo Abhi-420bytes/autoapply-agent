@@ -216,7 +216,7 @@ export default function OutreachPage() {
               <span className="text-xs text-zinc-500">minutes (time to skip or edit). Drafts with a warning always wait for you.</span>
             </div>
             <div className="sm:col-span-2">
-              <Label htmlFor="closing">Closing note (added to the end of every email)</Label>
+              <Label htmlFor="closing">Closing note (added to the end of every email — leave empty for none)</Label>
               <textarea id="closing" className="mt-1 h-24 w-full rounded-md border border-zinc-300 bg-transparent p-2 text-sm dark:border-zinc-700"
                 defaultValue={settings.outreach_closing_note}
                 onBlur={(e) => e.target.value !== settings.outreach_closing_note && void saveSettings({ outreach_closing_note: e.target.value })} />

@@ -82,7 +82,8 @@ class AppSettings(BaseModel):
     outreach_auto_send: bool = False
     outreach_send_delay_minutes: int = Field(default=30, ge=0, le=24 * 60)
     # Closing note of every cold email (must name AutoApply Agent; {name} = your name)
-    outreach_closing_note: str = Field(default=DEFAULT_CLOSING_NOTE, min_length=20, max_length=600)
+    # empty = no closing note
+    outreach_closing_note: str = Field(default=DEFAULT_CLOSING_NOTE, max_length=600)
     # companies without any email: re-check their careers page this often for openings
     outreach_watch_hours: int = Field(default=24, ge=1, le=24 * 14)
 
@@ -98,7 +99,7 @@ class AppSettings(BaseModel):
     @field_validator("outreach_closing_note")
     @classmethod
     def _keeps_disclosure(cls, v: str) -> str:
-        if "autoapply agent" not in v.lower():
+        if v.strip() and "autoapply agent" not in v.lower():
             raise ValueError(
                 "the closing note must say the email was sent by AutoApply Agent (your agent)"
             )

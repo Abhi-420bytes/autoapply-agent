@@ -970,3 +970,16 @@ def test_ai_rate_limit_during_research_retries_later_instead_of_failing(
     finally:
         service.research_company = orig  # type: ignore[assignment]
     assert picked == []  # waits 30 minutes before trying again
+
+
+def test_closing_note_can_be_turned_off(client: Any, db: Session) -> None:
+    assert client.patch("/api/settings", json={"outreach_closing_note": ""}).status_code == 200
+    c = _setup_company(db)
+    e = OutreachEmail(
+        company_id=c.id, to_address="careers@acme.io", subject="S", body="B", status="ready"
+    )
+    db.add(e)
+    db.commit()
+    r = client.patch(f"/api/outreach/emails/{e.id}", json={"body": "Just my own words."})
+    body = r.json()["companies"][0]["email"]["body"]
+    assert body == "Just my own words." and "AutoApply Agent" not in body

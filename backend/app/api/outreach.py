@@ -263,8 +263,9 @@ def edit_email(email_id: int, body: EmailEdit, db: Session = Depends(get_db)) ->
         e.subject = body.subject
     if body.body is not None:
         text = body.body.rstrip()
-        line = disclosure(display_name(db), get_app_settings(db).outreach_closing_note)
-        if line not in text:  # your rule: every email says it was sent by your agent
+        note = get_app_settings(db).outreach_closing_note
+        line = disclosure(display_name(db), note) if note.strip() else ""
+        if line and line not in text:  # keep your closing note (if you have one)
             text += "\n\n—\n" + line
         e.body = text
     db.commit()
