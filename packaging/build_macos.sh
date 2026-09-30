@@ -15,7 +15,9 @@ rm -rf "$HERE/build" "$HERE/dist"
 APP="$HERE/dist/AutoApply.app"
 codesign --force --deep --sign - "$APP"   # ad-hoc signature (no Apple developer account)
 
-DMG="$HERE/dist/AutoApply-$VERSION-macos-$(uname -m).dmg"
+# fixed names so .../releases/latest/download/<file> links never change
+ARCH_LABEL="$([[ "$(uname -m)" == "arm64" ]] && echo arm64 || echo intel)"
+DMG="$HERE/dist/AutoApply-macos-$ARCH_LABEL.dmg"
 TMP="$HERE/dist/dmg"
 rm -rf "$TMP" "$DMG" && mkdir -p "$TMP"
 cp -R "$APP" "$TMP/"

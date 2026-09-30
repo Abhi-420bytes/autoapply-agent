@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import { LogoMark } from "@/components/Logo";
 import { Nav } from "@/components/Nav";
 import { CREATOR, CREATOR_FULL, REPO_URL } from "@/lib/brand";
 import "./globals.css";
@@ -25,7 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div className="md:flex">
           <aside className="border-b border-zinc-200 bg-white px-3 py-3 dark:border-zinc-800 dark:bg-zinc-900 md:sticky md:top-0 md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col md:border-b-0 md:border-r md:px-3 md:py-5">
             <div className="mb-3 flex items-center gap-2.5 px-2 md:mb-6">
-              <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-brand-500 to-violet-600 text-sm font-bold text-white shadow-sm">A</span>
+              <LogoMark size={34} className="shrink-0 drop-shadow-sm" />
               <div className="leading-tight">
                 <p className="text-sm font-semibold">AutoApply</p>
                 <p className="text-[11px] text-zinc-500">Agentic job search</p>

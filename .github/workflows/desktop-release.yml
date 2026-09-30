@@ -86,5 +86,5 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            packaging/dist/AutoApply-Setup-*.exe
+            packaging/dist/AutoApply-windows-setup.exe
             packaging/dist/*.zip

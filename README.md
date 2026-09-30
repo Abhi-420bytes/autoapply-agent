@@ -1,6 +1,16 @@
-# AutoApply Agent
+<p align="center">
+  <img src="branding/logo.png" alt="AutoApply by Abhiram" width="560">
+</p>
 
-**Created by [Abhiram](https://github.com/Abhi-420bytes) (Challa Abhiram)** · [MIT License](LICENSE)
+<p align="center">
+  <a href="https://github.com/Abhi-420bytes/autoapply-agent/releases/latest/download/AutoApply-macos-arm64.dmg"><img alt="Download for Mac (Apple Silicon)" src="https://img.shields.io/badge/Download-Mac%20(Apple%20Silicon)-4f46e5?style=for-the-badge&logo=apple&logoColor=white"></a>
+  <a href="https://github.com/Abhi-420bytes/autoapply-agent/releases/latest/download/AutoApply-macos-intel.dmg"><img alt="Download for Mac (Intel)" src="https://img.shields.io/badge/Download-Mac%20(Intel)-6366f1?style=for-the-badge&logo=apple&logoColor=white"></a>
+  <a href="https://github.com/Abhi-420bytes/autoapply-agent/releases/latest/download/AutoApply-windows-setup.exe"><img alt="Download for Windows" src="https://img.shields.io/badge/Download-Windows-7c3aed?style=for-the-badge&logo=windows&logoColor=white"></a>
+</p>
+
+<p align="center"><b>Created by <a href="https://github.com/Abhi-420bytes">Abhiram</a> (Challa Abhiram)</b> · <a href="LICENSE">MIT License</a></p>
+
+# AutoApply Agent
 
 An open-source **agentic AI** job-search assistant. It reads job emails and job websites,
 tailors your LaTeX resume to each job description (using only facts from your GitHub, past
@@ -26,10 +36,13 @@ emails to startups and mid-size companies.
 
 Get the app from the **[Releases page](https://github.com/Abhi-420bytes/autoapply-agent/releases/latest)**:
 
-| System | File | First launch |
+| System | Direct download | First launch |
 |---|---|---|
-| **macOS** (Apple Silicon or Intel) | `AutoApply-<version>-macos-arm64.dmg` / `-x86_64.dmg` | Drag AutoApply to Applications. The app isn't Apple-notarized, so the first time **right-click → Open → Open**. |
-| **Windows 10/11** | `AutoApply-Setup-<version>.exe` | If SmartScreen appears: **More info → Run anyway**. Tick "Start AutoApply when I sign in" to keep the agent working. |
+| **Mac, Apple Silicon** (M1/M2/M3/M4) | [AutoApply-macos-arm64.dmg](https://github.com/Abhi-420bytes/autoapply-agent/releases/latest/download/AutoApply-macos-arm64.dmg) | Drag AutoApply to Applications, then **right-click → Open → Open** the first time (the app isn't Apple-notarized). |
+| **Mac, Intel** | [AutoApply-macos-intel.dmg](https://github.com/Abhi-420bytes/autoapply-agent/releases/latest/download/AutoApply-macos-intel.dmg) | Same as above. |
+| **Windows 10/11** | [AutoApply-windows-setup.exe](https://github.com/Abhi-420bytes/autoapply-agent/releases/latest/download/AutoApply-windows-setup.exe) | If SmartScreen appears: **More info → Run anyway**. Tick "Start AutoApply when I sign in" to keep the agent working. |
+
+These links always download the latest version.
 
 Open AutoApply and the dashboard opens in its own window. Everything runs on your own
 computer, and your data stays in your user folder. On first launch the app:

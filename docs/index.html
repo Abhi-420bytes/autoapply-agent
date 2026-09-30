@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AutoApply · Download</title>
+<meta name="description" content="AutoApply: an open-source agentic AI job-search assistant. Created by Abhiram (Challa Abhiram).">
+<meta name="author" content="Challa Abhiram">
+<link rel="icon" href="logo-mark.svg" type="image/svg+xml">
+<style>
+  :root { --bg:#fafafa; --card:#fff; --text:#18181b; --muted:#71717a; --line:#e4e4e7; --brand:#4f46e5; --brand2:#7c3aed; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#09090b; --card:#18181b; --text:#fafafa; --muted:#a1a1aa; --line:#27272a; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:16px/1.55 Inter,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif; }
+  main { max-width: 880px; margin: 0 auto; padding: 56px 16px 40px; text-align: center; }
+  .mark { width: 104px; height: 104px; filter: drop-shadow(0 14px 28px rgba(79,70,229,.35)); }
+  h1 { font-size: clamp(36px, 7vw, 56px); letter-spacing: -0.03em; margin: 18px 0 6px;
+       background: linear-gradient(90deg,var(--brand),var(--brand2)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .tag { color: var(--muted); font-size: 18px; margin: 0 auto 28px; max-width: 620px; }
+  .primary { display:inline-flex; align-items:center; gap:10px; padding:16px 28px; border-radius:14px; color:#fff; text-decoration:none;
+             font-weight:600; font-size:18px; background:linear-gradient(90deg,var(--brand),var(--brand2)); box-shadow:0 10px 24px rgba(79,70,229,.3); }
+  .primary:hover { filter: brightness(1.08); }
+  .sub { color:var(--muted); font-size:14px; margin-top:10px; }
+  .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(230px,1fr)); gap:12px; margin:36px 0; text-align:left; }
+  .dl { display:block; padding:16px; border:1px solid var(--line); border-radius:14px; background:var(--card); color:var(--text); text-decoration:none; }
+  .dl:hover { border-color: var(--brand); }
+  .dl b { display:block; } .dl span { color:var(--muted); font-size:13px; }
+  .features { display:grid; grid-template-columns: repeat(auto-fit, minmax(300px,1fr)); gap:12px; text-align:left; margin-top:8px; }
+  .f { padding:16px; border:1px solid var(--line); border-radius:14px; background:var(--card); }
+  .f b { display:block; margin-bottom:4px; } .f p { margin:0; color:var(--muted); font-size:14px; }
+  footer { color:var(--muted); font-size:14px; padding:24px 16px 40px; text-align:center; }
+  a.link { color: var(--brand); }
+</style>
+</head>
+<body>
+<main>
+  <img class="mark" src="logo-mark.svg" alt="AutoApply logo">
+  <h1>AutoApply</h1>
+  <p class="tag">Your agentic AI job-search assistant: it tailors your resume to every job, applies with your approval, and emails startups for you. Runs on your own computer.</p>
+
+  <a id="primary" class="primary" href="https://github.com/Abhi-420bytes/autoapply-agent/releases/latest">Download AutoApply</a>
+  <p class="sub" id="hint">Free and open source · macOS and Windows · No Docker needed</p>
+
+  <div class="grid">
+    <a class="dl" href="https://github.com/Abhi-420bytes/autoapply-agent/releases/latest/download/AutoApply-macos-arm64.dmg"><b>Mac · Apple Silicon</b><span>M1, M2, M3, M4 · .dmg</span></a>
+    <a class="dl" href="https://github.com/Abhi-420bytes/autoapply-agent/releases/latest/download/AutoApply-macos-intel.dmg"><b>Mac · Intel</b><span>Older Macs · .dmg</span></a>
+    <a class="dl" href="https://github.com/Abhi-420bytes/autoapply-agent/releases/latest/download/AutoApply-windows-setup.exe"><b>Windows 10 / 11</b><span>Installer · .exe</span></a>
+  </div>
+
+  <div class="features">
+    <div class="f"><b>Tailored resumes</b><p>An AI writer and an ATS reviewer agent improve each LaTeX resume, using only facts from your own data.</p></div>
+    <div class="f"><b>Applies for you</b><p>Reads job emails and job sites, and applies on company portals after your approval. Never bypasses CAPTCHAs.</p></div>
+    <div class="f"><b>Startup outreach</b><p>Finds startups and their hiring emails, and sends short, specific emails with your tailored resume.</p></div>
+    <div class="f"><b>Private</b><p>Everything stays on your computer. Keys are encrypted, and any AI provider works (Gemini, OpenAI, Claude, Ollama…).</p></div>
+  </div>
+  <p class="sub" style="margin-top:28px">First launch on Mac: right-click the app → <b>Open</b>. On Windows: SmartScreen → <b>More info → Run anyway</b>.</p>
+</main>
+<footer>
+  Created by <b>Abhiram</b> (Challa Abhiram) ·
+  <a class="link" href="https://github.com/Abhi-420bytes/autoapply-agent">Source on GitHub</a> ·
+  <a class="link" href="https://github.com/Abhi-420bytes/autoapply-agent/blob/main/LICENSE">MIT License</a>
+</footer>
+<script>
+  // Point the big button at the right file for this computer.
+  (async function () {
+    const base = "https://github.com/Abhi-420bytes/autoapply-agent/releases/latest/download/";
+    const btn = document.getElementById("primary"), hint = document.getElementById("hint");
+    const ua = navigator.userAgent;
+    if (/Windows/i.test(ua)) {
+      btn.href = base + "AutoApply-windows-setup.exe"; btn.textContent = "Download for Windows";
+    } else if (/Mac/i.test(ua)) {
+      let arm = true; // most Macs sold since 2020 are Apple Silicon
+      try {
+        const h = await navigator.userAgentData?.getHighEntropyValues?.(["architecture"]);
+        if (h && h.architecture) arm = h.architecture === "arm";
+      } catch (e) {}
+      btn.href = base + (arm ? "AutoApply-macos-arm64.dmg" : "AutoApply-macos-intel.dmg");
+      btn.textContent = "Download for Mac" + (arm ? " (Apple Silicon)" : " (Intel)");
+      hint.textContent = "Not sure which Mac you have?  → About This Mac: \"Apple M…\" = Apple Silicon.";
+    }
+  })();
+</script>
+</body>
+</html>

@@ -45,6 +45,6 @@ if (-not $iscc -and (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")
 if ($iscc) {
   & $iscc "/DAppVersion=$Version" "/DSourceDir=$Here\dist\AutoApply" "/DOutDir=$Here\dist" "$Here\windows_installer.iss"
 } else {
-  Compress-Archive -Path "$Here\dist\AutoApply\*" -DestinationPath "$Here\dist\AutoApply-$Version-windows-x64.zip" -Force
+  Compress-Archive -Path "$Here\dist\AutoApply\*" -DestinationPath "$Here\dist\AutoApply-windows.zip" -Force
 }
 Write-Host "built into $Here\dist"
