@@ -3,17 +3,13 @@
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6366F1"/><stop offset="1" stop-color="#7C3AED"/></linearGradient>
     <radialGradient id="glow" cx="0.28" cy="0.18" r="0.75"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0.30"/><stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/></radialGradient>
-    <linearGradient id="wing" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#E0E7FF"/><stop offset="1" stop-color="#C7D2FE"/></linearGradient>
     <linearGradient id="text" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#4F46E5"/><stop offset="1" stop-color="#7C3AED"/></linearGradient>
   </defs>
   <g transform="translate(22 22) scale(0.5)">
-    <rect x="16" y="16" width="480" height="480" rx="112" fill="url(#bg)"/>
-    <rect x="16" y="16" width="480" height="480" rx="112" fill="url(#glow)"/>
-    <path d="M104 372 C 150 356, 176 330, 196 300" fill="none" stroke="#FFFFFF" stroke-opacity="0.55" stroke-width="14" stroke-linecap="round" stroke-dasharray="2 30"/>
-    <path d="M120 250 L396 128 L324 392 L262 300 Z" fill="#FFFFFF"/>
-    <path d="M396 128 L262 300 L246 372 L286 322 Z" fill="url(#wing)"/>
-    <path d="M396 128 L262 300" stroke="#A5B4FC" stroke-width="6" stroke-linecap="round"/>
-    <path d="M398 334 l10 26 26 10 -26 10 -10 26 -10 -26 -26 -10 26 -10 z" fill="#FFFFFF"/>
+  <rect x="16" y="16" width="480" height="480" rx="112" fill="url(#bg)"/>
+  <rect x="16" y="16" width="480" height="480" rx="112" fill="url(#glow)"/>
+  <path fill="#FFFFFF" fill-rule="evenodd" d="M130 404 L222 118 L290 118 L382 404 L316 404 L298 344 L214 344 L196 404 Z M230 290 L282 290 L256 202 Z"/>
+  <path d="M392 96 l12 30 30 12 -30 12 -12 30 -12 -30 -30 -12 30 -12 z" fill="#FFFFFF"/>
   </g>
   <text x="310" y="168" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="118" font-weight="800" letter-spacing="-4" fill="url(#text)">AutoApply</text>
   <text x="314" y="232" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="38" font-weight="500" fill="#71717A">Agentic job search · by Abhiram</text>
