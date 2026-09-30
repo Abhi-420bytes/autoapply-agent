@@ -38,11 +38,23 @@ Get the app from the **[Releases page](https://github.com/Abhi-420bytes/autoappl
 
 | System | Direct download | First launch |
 |---|---|---|
-| **Mac, Apple Silicon** (M1/M2/M3/M4) | [AutoApply-macos-arm64.dmg](https://github.com/Abhi-420bytes/autoapply-agent/releases/latest/download/AutoApply-macos-arm64.dmg) | Drag AutoApply to Applications, then **right-click → Open → Open** the first time (the app isn't Apple-notarized). |
+| **Mac, Apple Silicon** (M1/M2/M3/M4) | [AutoApply-macos-arm64.dmg](https://github.com/Abhi-420bytes/autoapply-agent/releases/latest/download/AutoApply-macos-arm64.dmg) | Drag AutoApply to Applications and open it. If macOS says **"AutoApply" Not Opened**, click **Done**, then go to **System Settings → Privacy & Security**, scroll down and click **Open Anyway** (once). The app isn't Apple-notarized yet. |
 | **Mac, Intel** | [AutoApply-macos-intel.dmg](https://github.com/Abhi-420bytes/autoapply-agent/releases/latest/download/AutoApply-macos-intel.dmg) | Same as above. |
 | **Windows 10/11** | [AutoApply-windows-setup.exe](https://github.com/Abhi-420bytes/autoapply-agent/releases/latest/download/AutoApply-windows-setup.exe) | If SmartScreen appears: **More info → Run anyway**. Tick "Start AutoApply when I sign in" to keep the agent working. |
 
 These links always download the latest version.
+
+<details><summary>Mac: "AutoApply Not Opened" / "Apple could not verify…"</summary>
+
+That's macOS Gatekeeper blocking an app that isn't signed with a paid Apple Developer ID.
+It happens only once:
+
+1. Click **Done** (not "Move to Bin").
+2. Open **System Settings → Privacy & Security**, scroll to *"AutoApply" was blocked…*, and
+   click **Open Anyway**, then **Open Anyway** again and enter your password.
+
+Or, in Terminal: `xattr -dr com.apple.quarantine /Applications/AutoApply.app`
+</details>
 
 Open AutoApply and the dashboard opens in its own window. Everything runs on your own
 computer, and your data stays in your user folder. On first launch the app:
