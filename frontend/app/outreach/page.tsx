@@ -85,7 +85,7 @@ export default function OutreachPage() {
   const [siteRole, setSiteRole] = useState("");
   const [siteJd, setSiteJd] = useState("");
   const [busy, setBusy] = useState(false);
-  const [tab, setTab] = useState<"drafts" | "companies" | "directories" | "setup">("drafts");
+  const [tab, setTab] = useState<"drafts" | "sent" | "companies" | "directories" | "setup">("drafts");
 
   const load = useCallback(async () => {
     setData(await call<Overview>("/outreach"));
@@ -116,6 +116,9 @@ export default function OutreachPage() {
   }
 
   const drafts = (data?.companies ?? []).filter((c) => c.email && ["ready", "failed", "approved"].includes(c.email.status));
+  const sent = (data?.companies ?? [])
+    .filter((c) => c.email?.status === "sent")
+    .sort((a, b) => (b.email?.sent_at ?? "").localeCompare(a.email?.sent_at ?? ""));
   const watching = (data?.companies ?? []).filter((c) => c.status === "watching").length;
   const inProgress = (data?.companies ?? []).filter((c) => ["new", "researched", "queued"].includes(c.status) || c.email?.status === "resume_pending").length;
 
@@ -132,7 +135,7 @@ export default function OutreachPage() {
         }
       />
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Sent today" value={`${data?.sent_last_24h ?? 0} / ${data?.daily_cap ?? 0}`} hint="last 24 hours" tone="good" icon={<IconSend size={16} />} />
+        <StatCard label="Sent today" value={`${data?.sent_last_24h ?? 0} / ${data?.daily_cap ?? 0}`} hint={`${sent.length} sent in total`} tone="good" icon={<IconSend size={16} />} active={tab === "sent"} onClick={() => setTab("sent")} />
         <StatCard label="Drafts" value={drafts.length} hint="ready, scheduled or failed" tone="warn" icon={<IconMail size={16} />} active={tab === "drafts"} onClick={() => setTab("drafts")} />
         <StatCard label="Companies" value={data?.companies.length ?? 0} hint={`${inProgress} in progress`} icon={<IconBuilding size={16} />} active={tab === "companies"} onClick={() => setTab("companies")} />
         <StatCard label="Watching careers pages" value={watching} hint="no email published" tone="accent" icon={<IconEye size={16} />} active={tab === "companies"} onClick={() => setTab("companies")} />
@@ -142,6 +145,7 @@ export default function OutreachPage() {
         onChange={setTab}
         tabs={[
           { value: "drafts", label: "Drafts", count: drafts.length },
+          { value: "sent", label: "Sent", count: sent.length },
           { value: "companies", label: "Companies", count: data?.companies.length ?? 0 },
           { value: "directories", label: "Startup directories" },
           { value: "setup", label: "Setup" },
@@ -333,7 +337,44 @@ export default function OutreachPage() {
           </EmptyState>
         )
       )}
+
+      {tab === "sent" && (
+        sent.length > 0 ? (
+          <section className="space-y-3">
+            {sent.map((c) => <SentEmail key={c.id} c={c} />)}
+          </section>
+        ) : (
+          <EmptyState icon={<IconSend size={18} />} title="Nothing sent yet">
+            Emails move here once they have been sent from your mailbox.
+          </EmptyState>
+        )
+      )}
     </div>
+  );
+}
+
+function SentEmail({ c }: { c: Company }) {
+  const e = c.email as OutreachEmail;
+  return (
+    <Card className="text-sm">
+      <details>
+        <summary className="flex cursor-pointer list-none flex-wrap items-center gap-x-3 gap-y-1">
+          <span className="font-medium">{c.name}</span>
+          <span className="text-xs text-zinc-500">to {e.to_address}</span>
+          <span className="flex-1" />
+          <span className="text-xs text-zinc-500">{e.sent_at ? new Date(e.sent_at).toLocaleString() : ""}</span>
+          <Badge tone="good">sent</Badge>
+          <span className="basis-full truncate text-zinc-600 dark:text-zinc-400">{e.subject}</span>
+        </summary>
+        <div className="mt-3 space-y-3 border-t border-zinc-200 pt-3 dark:border-zinc-800">
+          <p className="whitespace-pre-wrap leading-relaxed">{e.body}</p>
+          <div className="flex flex-wrap gap-3">
+            {e.resume_id && <a className="text-xs underline" href={`/api/backend/resumes/${e.resume_id}/pdf`} target="_blank" rel="noreferrer noopener">Attached resume (PDF)</a>}
+            {e.job_id && <Link className="text-xs underline" href={`/jobs/${e.job_id}`}>Resume details</Link>}
+          </div>
+        </div>
+      </details>
+    </Card>
   );
 }
 
