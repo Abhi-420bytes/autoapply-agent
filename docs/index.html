@@ -28,6 +28,11 @@
   .features { display:grid; grid-template-columns: repeat(auto-fit, minmax(300px,1fr)); gap:12px; text-align:left; margin-top:8px; }
   .f { padding:16px; border:1px solid var(--line); border-radius:14px; background:var(--card); }
   .f b { display:block; margin-bottom:4px; } .f p { margin:0; color:var(--muted); font-size:14px; }
+  .cmd { margin:28px auto 0; max-width:720px; text-align:left; padding:16px; border:1px solid var(--line); border-radius:14px; background:var(--card); }
+  .cmd p { margin:0 0 8px; font-size:14px; } .cmd .small { color:var(--muted); margin:8px 0 0; }
+  .row { display:flex; gap:8px; align-items:stretch; }
+  .row code { flex:1; overflow-x:auto; white-space:nowrap; padding:10px 12px; border-radius:10px; background:var(--bg); border:1px solid var(--line); font:13px ui-monospace,SFMono-Regular,Menlo,monospace; }
+  .row button { border:0; border-radius:10px; padding:0 16px; color:#fff; font-weight:600; cursor:pointer; background:linear-gradient(90deg,var(--brand),var(--brand2)); }
   footer { color:var(--muted); font-size:14px; padding:24px 16px 40px; text-align:center; }
   a.link { color: var(--brand); }
 </style>
@@ -40,6 +45,12 @@
 
   <a id="primary" class="primary" href="https://github.com/Abhi-420bytes/autoapply-agent/releases/latest">Download AutoApply</a>
   <p class="sub" id="hint">Free and open source · macOS and Windows · No Docker needed</p>
+
+  <div class="cmd" id="maccmd">
+    <p><b>Mac:</b> install with one command (no security warning). Open Terminal and paste:</p>
+    <div class="row"><code id="cmd">curl -fsSL https://abhi-420bytes.github.io/autoapply-agent/install.sh | bash</code><button id="copy" type="button">Copy</button></div>
+    <p class="small">Run it again any time to update. Your data is kept.</p>
+  </div>
 
   <div class="grid">
     <a class="dl" href="https://github.com/Abhi-420bytes/autoapply-agent/releases/latest/download/AutoApply-macos-arm64.dmg"><b>Mac · Apple Silicon</b><span>M1, M2, M3, M4 · .dmg</span></a>
@@ -61,6 +72,10 @@
   <a class="link" href="https://github.com/Abhi-420bytes/autoapply-agent/blob/main/LICENSE">MIT License</a>
 </footer>
 <script>
+  document.getElementById("copy").addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(document.getElementById("cmd").textContent); document.getElementById("copy").textContent = "Copied"; } catch (e) {}
+  });
+  if (/Windows/i.test(navigator.userAgent)) document.getElementById("maccmd").style.display = "none";
   // Point the big button at the right file for this computer.
   (async function () {
     const base = "https://github.com/Abhi-420bytes/autoapply-agent/releases/latest/download/";

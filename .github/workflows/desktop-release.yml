@@ -25,6 +25,10 @@ jobs:
           - runner: macos-15-intel  # Intel
             tectonic: x86_64-apple-darwin
     runs-on: ${{ matrix.runner }}
+    env:
+      # Optional Apple notarization: add these repository secrets (Apple Developer Program)
+      # and every .dmg is signed + notarized, so macOS opens it without any warning.
+      HAS_APPLE_CERT: ${{ secrets.MACOS_CERT_P12 != '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -41,7 +45,25 @@ jobs:
           curl -fsSL -o tectonic.tgz "https://github.com/tectonic-typesetting/tectonic/releases/download/tectonic%40${TECTONIC_VERSION}/tectonic-${TECTONIC_VERSION}-${{ matrix.tectonic }}.tar.gz"
           tar -xzf tectonic.tgz
           echo "TECTONIC_BIN=$PWD/tectonic" >> "$GITHUB_ENV"
+      - name: Import the Apple signing certificate (only if configured)
+        if: env.HAS_APPLE_CERT == 'true'
+        env:
+          MACOS_CERT_P12: ${{ secrets.MACOS_CERT_P12 }}
+          MACOS_CERT_PASSWORD: ${{ secrets.MACOS_CERT_PASSWORD }}
+        run: |
+          echo "$MACOS_CERT_P12" | base64 --decode > cert.p12
+          security create-keychain -p build build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p build build.keychain
+          security import cert.p12 -k build.keychain -P "$MACOS_CERT_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k build build.keychain
+          rm cert.p12
       - name: Build AutoApply.app and .dmg
+        env:
+          APPLE_SIGN_IDENTITY: ${{ secrets.APPLE_SIGN_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           VERSION="${GITHUB_REF_NAME#v}"; [[ "$GITHUB_REF" == refs/tags/* ]] || VERSION="0.0.0-dev"
           PYTHON=python packaging/build_macos.sh "$VERSION"

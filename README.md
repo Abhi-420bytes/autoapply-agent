@@ -34,6 +34,20 @@ emails to startups and mid-size companies.
 
 ## Download (no Docker needed)
 
+### Mac: install with one command (recommended, no security warning)
+
+Open **Terminal** and paste:
+
+```bash
+curl -fsSL https://abhi-420bytes.github.io/autoapply-agent/install.sh | bash
+```
+
+It downloads the right version for your Mac (Apple Silicon or Intel), installs it in
+Applications and opens it, without macOS's "Apple could not verify…" warning. **Run the
+same command again any time to update.** Your data is kept.
+
+### Or download the files
+
 Get the app from the **[Releases page](https://github.com/Abhi-420bytes/autoapply-agent/releases/latest)**:
 
 | System | Direct download | First launch |
