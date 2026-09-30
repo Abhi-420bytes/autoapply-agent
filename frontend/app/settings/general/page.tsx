@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Button, Card, Input, Label, Notice, SectionTitle, Select, Switch } from "@/components/ui";
+import { DesktopControls } from "@/components/DesktopControls";
 import { call } from "@/lib/client";
 import type { AppSettings } from "@/lib/api";
 
@@ -62,6 +63,8 @@ export default function GeneralSettingsPage() {
         <p className="text-sm text-zinc-500">How the agent behaves, and the facts about you it may use.</p>
       </header>
       {msg && <Notice tone={msg.tone}>{msg.text}</Notice>}
+
+      <DesktopControls />
 
       <section>
         <SectionTitle title="Automation" />

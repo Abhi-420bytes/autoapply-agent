@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 
 from app.api import (
     analytics,
+    desktop,
     email,
     health,
     jobs,
@@ -50,6 +51,7 @@ def create_app() -> FastAPI:
     app.include_router(analytics.router, dependencies=protected)
     app.include_router(sites.router, dependencies=protected)
     app.include_router(outreach.router, dependencies=protected)
+    app.include_router(desktop.router, dependencies=protected)
 
     @app.exception_handler(AdminError)
     async def _admin_error(_: Request, exc: AdminError) -> JSONResponse:

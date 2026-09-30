@@ -305,7 +305,8 @@ def open_window(url: str) -> None:
 def main() -> int:
     url = f"{DASHBOARD_URL}/jobs"
     if port_open(WEB_PORT) and port_open(API_PORT):  # already running: just show it
-        open_window(url)
+        if "--background" not in sys.argv:
+            open_window(url)
         return 0
     dd = data_dir()
     env = configure(dd)
@@ -322,7 +323,12 @@ def main() -> int:
     scheduler: Any = start_background()
     dashboard = start_dashboard(env, dd)
     threading.Thread(target=ensure_browser, args=(dd,), name="browser", daemon=True).start()
-    if dashboard is not None and wait_http(url, 90) and not os.environ.get("AUTOAPPLY_NO_WINDOW"):
+    background = "--background" in sys.argv  # started at login: no window
+    if (
+        dashboard is not None
+        and wait_http(url, 90)
+        and not (background or os.environ.get("AUTOAPPLY_NO_WINDOW"))
+    ):
         open_window(url)
     log.info("AutoApply is running")
 
@@ -331,9 +337,14 @@ def main() -> int:
 
     signal.signal(signal.SIGTERM, _stop)
     restarts: list[float] = []
+    from app.api.desktop import quit_requested
+
     try:
-        while True:
-            time.sleep(5)
+        while not quit_requested.is_set():
+            quit_requested.wait(5)
+            if quit_requested.is_set():
+                log.info("quit requested from the dashboard")
+                break
             if dashboard is not None and dashboard.poll() is not None:
                 now = time.monotonic()
                 restarts = [r for r in restarts if now - r < 60] + [now]
